@@ -1,4 +1,4 @@
-import { Server, Config, Context, ResponseFunction, Permission } from 'hive-server';
+import { Server, Config, Context, ResponseFunction, Permission, rpc } from 'hive-server';
 import * as Redis from "redis";
 import * as nanomsg from 'nanomsg';
 import * as msgpack from 'msgpack-lite';
@@ -64,11 +64,17 @@ svc.call('getMutualAids', permissions, (ctx: Context, rep: ResponseFunction) => 
   });
 });
 
-  svc.call('applyForMutualAid', permissions, (ctx: Context, rep: ResponseFunction,args) => {
-    // console.log(args.name.sex)
-    // let arg = [ctx.uid, mutual_aid_no, name, licencse_no, city, district, street, driver_id, phone, vid, occurred_at, responsibility, situation, description, scene_view,
-    // vehicle_damaged_view, vehicle_frontal_view, driver_view, driver_license_view];
+  svc.call('applyForMutualAid', permissions, (ctx: Context, rep: ResponseFunction,city:string, district:string, street:string, name:string, phone:string,
+   licencse_no:string,engine_model:string, occurred_at:string, responsibility:string, situation:string, description:string, scene_view:string,
+    vehicle_damaged_view:string, vehicle_frontal_view:string, driver_view:string, driver_license_view:string) => {
+    // console.log(name)
+    let args = [ctx.uid, city, district, street, name, phone, licencse_no, engine_model, occurred_at, responsibility, situation, description, scene_view,
+    vehicle_damaged_view, vehicle_frontal_view, driver_view, driver_license_view];
     ctx.msgqueue.send(msgpack.encode({cmd: "applyForMutualAids", args:args,}));
+    // let p = rpc(ctx.domain, 'tcp://vehicle:4040', ctx.uid, 'getVehicleInfos', vincode, 0, -1));
+    // p.then((v) => {
+      
+    // });
     rep({status: "okay"});
 });
 
