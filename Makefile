@@ -7,7 +7,7 @@ NPM=npm
 NS = hive
 VERSION ?= 1.0.0
 
-REPO = mutual-service
+REPO = mutual-aid-service
 
 all: $(SERVER) $(PROCESSOR)
 

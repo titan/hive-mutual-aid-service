@@ -15,10 +15,9 @@ req.connect(addr);
 
 let params = {
   ctx: {domain: 'mobile', ip: 'localhost', uid: ''},
-  fun: 'refresh',
-  args: ['mutual_aid_id','mutual_aid_no','ctiy','district','street','name','gender','identity_no','phone','identity_frontal_view',
-    'identity_rear_view','license_frontal_view', 'license_rear_view', 'driving_years','vin','occurred_at', 'responsibility', 'situation', 'description', 'scene_view',
-    'vehicle_damaged_view', 'vehicle_frontal_view', 'driver_view', 'driver_license_view']
+  fun: 'applyForMutualAid', 
+  args: {name:'王宝强',licencse_no:'12324215',city:'北京市',district:'东城区',street:'东直门',driver_id:'00000000-0000-0000-0000-100020000000',phone:'15620696738',vid:'00000000-0000-0000-0010-100020000000',occurred_at:'2016-5-25', responsibility:'全部责任',
+   situation:'追尾', description:'后车追尾', scene_view:'www.baidu.com',vehicle_damaged_view:'www.baidu.com', vehicle_frontal_view:'www.baidu.com', driver_view:'www.baidu.com', driver_license_view:'www.baidu.com'},
 };
 
 req.send(msgpack.encode(params));

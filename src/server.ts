@@ -1,10 +1,31 @@
-import { Service, Config, Context, ResponseFunction, Permission } from 'hive-service';
+import { Server, Config, Context, ResponseFunction, Permission } from 'hive-server';
 import * as Redis from "redis";
 import * as nanomsg from 'nanomsg';
 import * as msgpack from 'msgpack-lite';
+import * as bunyan from 'bunyan';
 
+let log = bunyan.createLogger({
+  name: 'mutual-aid-server',
+  streams: [
+    {
+      level: 'info',
+      path: '/var/log/server-info.log',  // log ERROR and above to a file
+      type: 'rotating-file',
+      period: '1d',   // daily rotation
+      count: 7        // keep 7 back copies
+    },
+    {
+      level: 'error',
+      path: '/var/log/server-error.log',  // log ERROR and above to a file
+      type: 'rotating-file',
+      period: '1w',   // daily rotation
+      count: 3        // keep 7 back copies
+    }
+  ]
+});
 // let uuid = require('node-uuid'); 
 let redis = Redis.createClient(6379, "redis"); // port, host
+// let uuid = require('node-uuid');
 
 let mutualAid_entity = "mutualAid-";
 let mutualAids_entities = "mutualAids-";
@@ -15,12 +36,13 @@ let config: Config = {
   msgaddr: 'ipc:///tmp/queue.ipc'
 };
 
-let svc = new Service(config);
+let svc = new Server(config);
 
 let permissions: Permission[] = [['mobile', true], ['admin', true]];
 
 svc.call('getMutualAid', permissions, (ctx: Context, rep: ResponseFunction,aid:string) => {
   // http://redis.io/commands/sdiff
+   log.info('getMutualAid %j', ctx);
   redis.lrange(mutualAid_entity + aid,0,-1, function (err, result) {
     if (err) {
       rep([]);
@@ -32,6 +54,7 @@ svc.call('getMutualAid', permissions, (ctx: Context, rep: ResponseFunction,aid:s
 
 svc.call('getMutualAids', permissions, (ctx: Context, rep: ResponseFunction) => {
   // http://redis.io/commands/smembers
+   log.info('getMutualAids %j', ctx);
   redis.lrange(mutualAids_entities + ctx.uid,0,-1, function (err, result) {
     if (err) {
       rep([]);
@@ -41,21 +64,15 @@ svc.call('getMutualAids', permissions, (ctx: Context, rep: ResponseFunction) => 
   });
 });
 
-svc.call('applyForMutualAid', permissions, (ctx: Context, rep: ResponseFunction, mutual_aid_id:string,mutual_aid_no:string,pid:string,
-  city:string, district:string, name:string, gender:string, identity_no:string, phone:string, identity_frontal_view:string,
-    identity_rear_view:string, license_frontal_view:string, license_rear_view:string, driving_years:string, vin:string, occurred_at:string,responsibility:string,situation:string,
-  description:string,scene_view:string,vehicle_damaged_view:string,vehicle_frontal_view:string,driver_view:string,driver_license_view:string) => {
-    let args = [mutual_aid_id, ctx.uid,pid, mutual_aid_no, city, name, gender,identity_no,phone,identity_frontal_view,
-    identity_rear_view,license_frontal_view, license_rear_view, driving_years, phone, vin, occurred_at, responsibility, situation, description, scene_view,
-    vehicle_damaged_view, vehicle_frontal_view, driver_view, driver_license_view];
-    ctx.msgqueue.send(msgpack.encode({cmd: "refresh1", args: args,}));
+  svc.call('applyForMutualAid', permissions, (ctx: Context, rep: ResponseFunction,args) => {
+    // console.log(args.name.sex)
+    // let arg = [ctx.uid, mutual_aid_no, name, licencse_no, city, district, street, driver_id, phone, vid, occurred_at, responsibility, situation, description, scene_view,
+    // vehicle_damaged_view, vehicle_frontal_view, driver_view, driver_license_view];
+    ctx.msgqueue.send(msgpack.encode({cmd: "applyForMutualAids", args:args,}));
     rep({status: "okay"});
 });
 
-svc.call('refresh', permissions, (ctx: Context, rep: ResponseFunction) => {
-  ctx.msgqueue.send(msgpack.encode({cmd: "refresh", args:null));
-  console.log(arg)
-});
+
 
 function ids2objects(key: string, ids: string[], rep: ResponseFunction) {
   let multi = redis.multi();
