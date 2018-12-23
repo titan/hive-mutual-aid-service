@@ -3,7 +3,7 @@
     "@types/bluebird": "^3.0.36",
     "@types/uuid": "^2.0.29",
     "bunyan": "^1.8.1",
-    "hive-server": "git+http://git.fengchaohuzhu.com:10080/Titan/hive-service.git",
-    "hive-verify": "git+http://git.fengchaohuzhu.com:10080/feiluo/hive-verify.git"
+    "hive-server": "git+ssh://git@github.com/titan/hive-service.git",
+    "hive-verify": "git+ssh://git@github.com/titan/hive-verify.git"
   }
 }
